@@ -85,3 +85,8 @@ Optional:
 ## Wireframes
 
 ![](https://i.imgur.com/eICghiY.jpg)
+
+## Digital Wireframes
+
+* Home Feed:
+![](https://i.imgur.com/uOE3y6N.png)
