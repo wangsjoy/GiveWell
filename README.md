@@ -90,3 +90,138 @@ Optional:
 
 * Home Feed:
 ![](https://i.imgur.com/uOE3y6N.png)
+
+## Schema 
+### Models
+
+#### Organization
+
+   | Property      | Type     | Description |
+   | ------------- | -------- | ------------|
+   | organizationID      | String   | unique id for the user post (default field) |
+   | logo         | File     | image of logo that organization posts |
+   | missionStatement       | String   | organization mission statement |
+   | tag | Array of Strings   | short descriptors of organization mission (e.g. "malaria fund") |
+   | photoMedia    | File   | image that organization posts |
+   | videoMedia     | File | video that organization posts |
+   | createdAt     | DateTime | date when organization information is created (default field) |
+   | minimumDonation     | Number | minimum dollar amount organization will accept |
+
+#### User
+
+   | Property      | Type     | Description |
+   | ------------- | -------- | ------------|
+   | username      | String   | unique username for the user |
+   | password        | String| user password |
+   | email         | String     | email associated to user (default field) |
+   | profilePicture         | File     | picture of user |
+   | accountBalance       | Number   | dollar amount loaded in by user |
+   | donationHistory | Array of Pointers to Organizations   | organizations donated to |
+   | moneyHistory    | Array of Numbers   | dollar amount donated to different organizations |
+   
+#### Post
+
+   | Property      | Type     | Description |
+   | ------------- | -------- | ------------|
+   | objectId      | String   | unique id for the user post (default field) |
+   | author        | Pointer to User| image author |
+   | organization | Pointer to Organization   | organization that author donated to |
+   | amount    | Number   | monetary amount that author donated |
+   | image         | File     | image that user posts |
+   | caption       | String   | image caption by author |
+   | createdAt     | DateTime | date when post is created (default field) |
+   | updatedAt     | DateTime | date when post is last updated (default field) |
+   
+### Networking
+#### List of network requests by screen
+   - **Home Feed Screen**
+      - (Read/GET) Query all organizations created
+         ```objective-c
+             PFQuery *query = [PFQuery queryWithClassName:@"Organization"];
+
+            // fetch data asynchronously
+        [query findObjectsInBackgroundWithBlock:^(NSArray *organizations, NSError *error) {
+        if (organizations != nil) {
+            // do something with the array of object returned by the call
+            NSLog(@"Organizations retrieved");
+            self.arrayOfOrganizations = organizations;
+            [self.tableView reloadData];
+
+        } else {
+            NSLog(@"%@", error.localizedDescription);
+        }
+        }];
+         ```
+   - **Timeline/Posts Screen**
+      - (Read/GET) Query all posts created
+         ```objective-c
+             PFQuery *query = [PFQuery queryWithClassName:@"Post"];
+
+            // fetch data asynchronously
+        [query findObjectsInBackgroundWithBlock:^(NSArray *posts, NSError *error) {
+        if (posts != nil) {
+            // do something with the array of object returned by the call
+            NSLog(@"Posts retrieved");
+            self.arrayOfPosts = posts;
+            [self.tableView reloadData];
+
+        } else {
+            NSLog(@"%@", error.localizedDescription);
+        }
+        }];
+         ```
+     - (Create/POST) Create a new post object
+         ```objective-c
+        PFObject *post = [PFObject objectWithClassName:@"Post"];
+        post[@"author"] = [PFUser currentUser];
+        post[@"organization"] = self.organization;
+        post[@"amount"] = self.amount;
+        post[@"caption"] = self.caption;
+        post[@"image"] = [self getPFFileFromImage:image]
+        [post saveInBackgroundWithBlock: completion];
+        [post saveInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+          if (succeeded) {
+            // The object has been saved.
+          } else {
+            // There was a problem, check error.description
+          }
+        }];
+         ```
+   - **Profile Screen**
+      - (Read/GET) Query logged in user object
+         ```objective-c
+             PFQuery *query = [PFQuery queryWithClassName:@"User"];
+
+            // fetch data asynchronously
+        [query findObjectsInBackgroundWithBlock:^(PFUser *user, NSError *error) {
+        if (user != nil) {
+            // do something with the user returned by the call
+            NSLog(@"User retrieved");
+            self.user = user;
+
+        } else {
+            NSLog(@"%@", error.localizedDescription);
+        }
+        }];
+         ```
+      - (Update/PUT) Update user profile picture
+         ```objective-c
+        PFQuery *query = [PFQuery queryWithClassName:@"User"];
+
+        // Retrieve the object by id
+        [query getObjectInBackgroundWithId:@"xWMyZ4YEGZ"
+                                     block:^(PFUser *user, NSError *error) {
+            
+           if (user != nil) {
+            // Now let's update user with some new data.
+            NSLog(@"User retrieved");
+            user[@"profilePicture"] = [self getPFFileFromImage:image]
+    
+        [user saveInBackgroundWithBlock: completion];
+
+        } else {
+            NSLog(@"%@", error.localizedDescription);
+        }
+        }];
+        
+         ```
